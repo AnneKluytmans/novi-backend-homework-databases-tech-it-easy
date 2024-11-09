@@ -171,3 +171,66 @@ VALUES (1, 10),
        (4, 11);
 
 SELECT * FROM TelevisionsWallBrackets;
+
+
+--UPDATE tables
+UPDATE Products
+SET amountInStock = amountInStock + 10
+WHERE id = 1;
+
+SELECT * FROM Products
+ORDER BY id ASC;
+
+
+UPDATE Products
+SET price = price * 0.9
+WHERE name = 'LG OLED TV 65"';
+
+SELECT * FROM Products
+ORDER BY price ASC;
+
+
+UPDATE Remotes
+SET batteryType = 'Rechargeable', isSmart = false
+WHERE id = 7;
+
+SELECT * FROM Remotes;
+
+
+--SELECT and JOIN data from tables
+SELECT * FROM Products
+WHERE price < 500;
+
+
+SELECT t.screenType, t.screenQuality, p.name AS TelevisionName, r.batteryType AS RemoteBatteryType, c.provider
+FROM Televisions t
+JOIN Products p ON t.id = p.id
+LEFT JOIN Remotes r ON t.remote_id = r.id
+LEFT JOIN CiModules c ON t.ciModule_id = c.id;
+
+
+SELECT psd.saleDate, p.name AS ProductName
+FROM ProductSaleDates psd
+JOIN Products p ON psd.product_id = p.id
+WHERE p.name = 'Samsung Wall Bracket Fixed';
+
+
+SELECT type, SUM(amountSold) AS totalSold
+FROM Products
+GROUP BY type;
+
+
+SELECT p.name AS TelevisionName, wb.constructionType AS WallBracketType
+FROM TelevisionsWallBrackets twb
+         JOIN Televisions t ON twb.television_id = t.id
+         JOIN Products p ON t.id = p.id
+         JOIN WallBrackets wb ON twb.wallBracket_id = wb.id;
+
+
+SELECT * FROM Products
+WHERE amountSold = (SELECT MAX(amountSold) FROM Products);
+
+
+SELECT brand, SUM(amountInStock) AS TotalStock, SUM(amountSold) AS TotalSales
+FROM Products
+GROUP BY brand;
