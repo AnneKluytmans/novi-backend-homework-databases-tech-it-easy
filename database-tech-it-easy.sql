@@ -8,12 +8,16 @@ DROP TABLE IF EXISTS WallBrackets CASCADE;
 DROP TABLE IF EXISTS Televisions CASCADE;
 DROP TABLE IF EXISTS TelevisionsWallBrackets CASCADE;
 
+-- CREATE ENUM types for role and product type
+CREATE TYPE role_enum AS ENUM ('ADMIN', 'STAFF');
+CREATE TYPE product_type_enum AS ENUM ('Smart TV', 'Remote', 'CI Module', 'Wall Bracket');
+
 --CREATE tables
 CREATE TABLE Users (
     username VARCHAR(58) PRIMARY KEY,
     password VARCHAR(150) NOT NULL,
     email VARCHAR(150),
-    authorizationRole VARCHAR(24) NOT NULL
+    authorization_role role_enum NOT NULL
 );
 
 
@@ -21,14 +25,14 @@ CREATE TABLE Products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(58) NOT NULL,
     brand VARCHAR(58),
-    type VARCHAR(36),
+    type product_type_enum NOT NULL,
     price DOUBLE PRECISION NOT NULL CHECK (price >= 0),
-    amountInStock INT DEFAULT 0,
-    amountSold INT DEFAULT 0
+    amount_in_stock INT DEFAULT 0,
+    amount_sold INT DEFAULT 0 CHECK (amount_sold <= amount_in_stock)
 );
 
 CREATE TABLE ProductSaleDates (
-    saleDate DATE NOT NULL,
+    sale_date DATE NOT NULL,
     product_id BIGINT,
     CONSTRAINT fk_product FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE
 );
@@ -36,21 +40,21 @@ CREATE TABLE ProductSaleDates (
 
 CREATE TABLE Remotes (
     id BIGINT PRIMARY KEY REFERENCES Products(id) ON DELETE CASCADE,
-    batteryType VARCHAR(24),
-    isSmart BOOLEAN
+    battery_type VARCHAR(24),
+    is_smart BOOLEAN
 );
 
 
 CREATE TABLE CiModules (
     id BIGINT PRIMARY KEY REFERENCES Products(id) ON DELETE CASCADE,
     provider VARCHAR(58),
-    encodingType VARCHAR(36)
+    encoding_type VARCHAR(36)
 );
 
 
 CREATE TABLE WallBrackets (
     id BIGINT PRIMARY KEY REFERENCES Products(id) ON DELETE CASCADE,
-    constructionType VARCHAR(58),
+    construction_type VARCHAR(58),
     height FLOAT CHECK (height > 0),
     width FLOAT CHECK (width > 0)
 );
@@ -58,37 +62,36 @@ CREATE TABLE WallBrackets (
 
 CREATE TABLE Televisions (
     id BIGINT PRIMARY KEY REFERENCES Products(id) ON DELETE CASCADE,
-    screenType VARCHAR(36),
+    screen_type VARCHAR(36),
     height FLOAT CHECK (height > 0),
     width FLOAT CHECK (width > 0),
-    screenQuality VARCHAR(58),
-    hasWifi BOOLEAN,
-    isSmart BOOLEAN,
-    hasVoiceControl BOOLEAN,
-    isHdrCompatible BOOLEAN,
+    screen_quality VARCHAR(58),
+    has_wifi BOOLEAN,
+    is_smart BOOLEAN,
+    has_voice_control BOOLEAN,
+    is_hdr_compatible BOOLEAN,
     remote_id BIGINT,
-    ciModule_id BIGINT,
+    ci_module_id BIGINT,
     CONSTRAINT fk_remote FOREIGN KEY (remote_id) REFERENCES Remotes(id) ON DELETE CASCADE,
-    CONSTRAINT fk_ciModue FOREIGN KEY (ciModule_id) REFERENCES CiModules(id) ON DELETE CASCADE
+    CONSTRAINT fk_ci_module FOREIGN KEY (ci_module_id) REFERENCES CiModules(id) ON DELETE CASCADE
 );
 
 CREATE TABLE TelevisionsWallBrackets (
     television_id BIGINT,
-    wallBracket_id BIGINT,
+    wall_bracket_id BIGINT,
     CONSTRAINT fk_television FOREIGN KEY (television_id) REFERENCES Televisions(id) ON DELETE CASCADE,
-    CONSTRAINT fk_wallBracket FOREIGN KEY (wallBracket_id) REFERENCES WallBrackets(id) ON DELETE CASCADE
+    CONSTRAINT fk_wall_bracket FOREIGN KEY (wall_bracket_id) REFERENCES WallBrackets(id) ON DELETE CASCADE
 );
 
 --INSERT data into tables
-INSERT INTO Users (username, password, email, authorizationRole)
+INSERT INTO Users (username, password, email, authorization_role)
 VALUES ('user1', 'password1', 'user1@example.com', 'ADMIN'),
        ('user2', 'password2', 'user2@example.com', 'STAFF'),
        ('user3', 'password3', 'user3@example.com', 'STAFF');
 
 SELECT * FROM Users;
 
-
-INSERT INTO Products (name, brand, type, price, amountInStock, amountSold)
+INSERT INTO Products (name, brand, type, price, amount_in_stock, amount_sold)
 VALUES ('Samsung Smart TV 55"', 'Samsung', 'Smart TV', 499.99, 10, 3),
        ('LG OLED TV 65"', 'LG', 'Smart TV', 899.99, 5, 2),
        ('Sony 4K Ultra HD TV 50"', 'Sony', 'Smart TV', 750.00, 8, 4),
@@ -103,8 +106,7 @@ VALUES ('Samsung Smart TV 55"', 'Samsung', 'Smart TV', 499.99, 10, 3),
 
 SELECT * FROM Products;
 
-
-INSERT INTO ProductSaleDates (saleDate, product_id)
+INSERT INTO ProductSaleDates (sale_date, product_id)
 VALUES ('2024-10-01', 1),
        ('2024-10-01', 6),
        ('2024-10-10', 2),
@@ -130,30 +132,26 @@ VALUES ('2024-10-01', 1),
 
 SELECT * FROM ProductSaleDates;
 
-
-INSERT INTO Remotes (id, batteryType, isSmart)
+INSERT INTO Remotes (id, battery_type, is_smart)
 VALUES (5, 'AAA', false),
        (6, 'Rechargeable', true),
        (7, 'AA', true);
 
 SELECT * FROM Remotes;
 
-
-INSERT INTO CiModules (id, provider, encodingType)
+INSERT INTO CiModules (id, provider, encoding_type)
 VALUES (8, 'Sony Provider', 'Type A'),
        (9, 'Samsung Provider', 'Type B');
 
 SELECT * FROM CiModules;
 
-
-INSERT INTO WallBrackets (id, constructionType, height, width)
+INSERT INTO WallBrackets (id, construction_type, height, width)
 VALUES (10, 'Adjustable', 20.0, 30.0),
        (11, 'Fixed', 15.0, 25.0);
 
 SELECT * FROM WallBrackets;
 
-
-INSERT INTO Televisions (id, screenType, height, width, screenQuality, hasWifi, isSmart, hasVoiceControl, isHdrCompatible, remote_id, ciModule_id)
+INSERT INTO Televisions (id, screen_type, height, width, screen_quality, has_wifi, is_smart, has_voice_control, is_hdr_compatible, remote_id, ci_module_id)
 VALUES (1, 'LED', 55.0, 30.0, '4K', true, true, true, true, 5, 8),
        (2, 'OLED', 65.0, 35.0, '8K', true, true, true, true, 6, 9),
        (3, 'QLED', 50.0, 28.0, 'HD', true, false, false, true, 7, 8),
@@ -161,8 +159,7 @@ VALUES (1, 'LED', 55.0, 30.0, '4K', true, true, true, true, 5, 8),
 
 SELECT * FROM Televisions;
 
-
-INSERT INTO TelevisionsWallBrackets (television_id, wallBracket_id)
+INSERT INTO TelevisionsWallBrackets (television_id, wall_bracket_id)
 VALUES (1, 10),
        (1, 11),
        (2, 10),
@@ -173,9 +170,9 @@ VALUES (1, 10),
 SELECT * FROM TelevisionsWallBrackets;
 
 
---UPDATE tables
+-- UPDATE tables
 UPDATE Products
-SET amountInStock = amountInStock + 10
+SET amount_in_stock = amount_in_stock + 10
 WHERE id = 1;
 
 SELECT * FROM Products
@@ -191,46 +188,45 @@ ORDER BY price ASC;
 
 
 UPDATE Remotes
-SET batteryType = 'Rechargeable', isSmart = false
+SET battery_type = 'Rechargeable', is_smart = false
 WHERE id = 7;
 
 SELECT * FROM Remotes;
 
 
---SELECT and JOIN data from tables
+-- SELECT and JOIN data from tables
 SELECT * FROM Products
 WHERE price < 500;
 
-
-SELECT t.screenType, t.screenQuality, p.name AS TelevisionName, r.batteryType AS RemoteBatteryType, c.provider
+SELECT t.screen_type, t.screen_quality, p.name AS television_name, r.battery_type AS remote_battery_type, c.provider
 FROM Televisions t
 JOIN Products p ON t.id = p.id
 LEFT JOIN Remotes r ON t.remote_id = r.id
-LEFT JOIN CiModules c ON t.ciModule_id = c.id;
+LEFT JOIN CiModules c ON t.ci_module_id = c.id;
 
-
-SELECT psd.saleDate, p.name AS ProductName
+SELECT psd.sale_date, p.name AS product_name
 FROM ProductSaleDates psd
 JOIN Products p ON psd.product_id = p.id
-WHERE p.name = 'Samsung Wall Bracket Fixed';
+WHERE p.type = 'Smart TV'
+ORDER BY psd.sale_date DESC;
 
 
-SELECT type, SUM(amountSold) AS totalSold
+SELECT type, SUM(amount_sold) AS total_sold
 FROM Products
 GROUP BY type;
 
 
-SELECT p.name AS TelevisionName, wb.constructionType AS WallBracketType
+SELECT p.name AS television_name, wb.constructionType AS wall_bracket_type
 FROM TelevisionsWallBrackets twb
-         JOIN Televisions t ON twb.television_id = t.id
-         JOIN Products p ON t.id = p.id
-         JOIN WallBrackets wb ON twb.wallBracket_id = wb.id;
+JOIN Televisions t ON twb.television_id = t.id
+JOIN Products p ON t.id = p.id
+JOIN WallBrackets wb ON twb.wallBracket_id = wb.id;
 
 
 SELECT * FROM Products
-WHERE amountSold = (SELECT MAX(amountSold) FROM Products);
+WHERE amount_sold = (SELECT MAX(amount_sold) FROM Products);
 
 
-SELECT brand, SUM(amountInStock) AS TotalStock, SUM(amountSold) AS TotalSales
+SELECT brand, SUM(amount_in_stock) AS total_stock, SUM(amount_sold) AS total_sales
 FROM Products
 GROUP BY brand;
